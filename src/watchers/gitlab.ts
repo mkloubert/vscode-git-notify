@@ -16,10 +16,20 @@
  */
 
 import * as HTTP from 'http';
+import * as Moment from 'moment';
 import * as vscgn_contracts from '../contracts';
 import * as vscgn_helpers from '../helpers';
 import * as vscgn_watchers from '../watchers';
 
+
+interface GitLabPush extends GitLabRequestWithRepository {
+    commits?: {
+        id?: string;
+        message?: string;
+        timestamp?: string;
+        url?: string;
+    }[];
+}
 
 interface GitLabRequest {
     object_kind?: string;
@@ -147,7 +157,7 @@ export class GitLabWatcher extends vscgn_watchers.GitWebhookWatcher<GitLabWatche
         });
     }
 
-    private async handleGitLabMargeRequests(mergeRequests: GitLabMergeRequests,
+    private async handleGitLabMergeRequests(mergeRequests: GitLabMergeRequests,
                                             request: HTTP.IncomingMessage, response: HTTP.ServerResponse) {
         if (!vscgn_helpers.isObject(mergeRequests)) {
             return;
@@ -213,20 +223,82 @@ export class GitLabWatcher extends vscgn_watchers.GitWebhookWatcher<GitLabWatche
         });
     }
 
+    private async handleGitLabPush(push: GitLabPush,
+                                   request: HTTP.IncomingMessage, response: HTTP.ServerResponse) {
+        if (!vscgn_helpers.isObject(push)) {
+            return;
+        }
+
+        const COMMITS = vscgn_helpers.asArray(push.commits).filter(c => {
+            return vscgn_helpers.isObject(c);
+        }).sort((x, y) => {
+            return vscgn_helpers.compareValuesBy(y, x, c => {
+                const TIMESTAMP = vscgn_helpers.toStringSafe(c.timestamp).trim();
+                if ('' !== TIMESTAMP) {
+                    const TIME = Moment(TIMESTAMP);
+                    if (TIME.isValid()) {
+                        return TIME.unix();
+                    }
+                }
+            });
+        });
+
+        const HEAD_COMMIT = COMMITS[0];
+
+        let repository: string;
+        if (vscgn_helpers.isObject(push.repository)) {
+            repository = push.repository.name;
+        }
+
+        let id = vscgn_helpers.toStringSafe(HEAD_COMMIT.id).trim();
+        let title = vscgn_helpers.toStringSafe(HEAD_COMMIT.message).trim();
+        if (title.length > 48) {
+            title = title.substr(0, 48).trim();
+            if ('' !== title) {
+                title = title + '...';
+            }
+        }
+
+        if (id.length >= 7) {
+            id = id.substr(0, 7).trim();
+        }
+
+        if ('' !== id) {
+            if ('' === title) {
+                title = id;
+            }
+            else {
+                title = `${title} (${id})`;
+            }
+        }
+
+        this.emitGitNotification({
+            repository: repository,
+            title: title,
+            type: vscgn_contracts.GitNotificationType.Push,
+            url: HEAD_COMMIT.url,
+        });
+    }
+
     private async handleGitLabRequest(fromGitLab: GitLabRequest,
                                       request: HTTP.IncomingMessage, response: HTTP.ServerResponse) {
         const GITLAB_EVENT = vscgn_helpers.normalizeString(request.headers['x-gitlab-event']);
         
         switch (GITLAB_EVENT) {
-            case 'note hook':
             case 'issue hook':
+            case 'note hook':
                 await this.handleGitLabIssues(<GitLabIssues>fromGitLab,
                                               request, response);
                 break;
 
             case 'merge request hook':
-                await this.handleGitLabMargeRequests(<GitLabMergeRequests>fromGitLab,
+                await this.handleGitLabMergeRequests(<GitLabMergeRequests>fromGitLab,
                                                      request, response);
+                break;
+
+            case 'push hook':
+                await this.handleGitLabPush(<GitLabPush>fromGitLab,
+                                            request, response);
                 break;
         }
     }
