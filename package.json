@@ -2,7 +2,7 @@
     "name": "vscode-git-notify",
     "displayName": "Git Notify",
     "description": "Receives and shows git events from webhooks.",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "publisher": "mkloubert",
     "engines": {
         "vscode": "^1.19.0"
@@ -161,6 +161,11 @@
                                                                 "default": true
                                                             }
                                                         }
+                                                    },
+                                                    "push": {
+                                                        "description": "Notify when push has been made into the repository.",
+                                                        "type": "boolean",
+                                                        "default": true
                                                     },
                                                     "secret": {
                                                         "description": "A value that should be used to verify the request."

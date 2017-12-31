@@ -727,6 +727,19 @@ function setupWatcher(watcher: vscgn_watchers.GitWatcher) {
                     }
                     break;
 
+                case vscgn_contracts.GitNotificationType.Push:
+                    {
+                        if (vscgn_helpers.toBooleanSafe(watcher.settings.push, true)) {
+                            if ('' !== REPOSITORY) {
+                                message = `New commit${TITLE_SUFFIX} into '${REPOSITORY}'!`;
+                            }
+                            else {
+                                message = `New commit${TITLE_SUFFIX}!`;
+                            }
+                        }
+                    }
+                    break;
+
                 case vscgn_contracts.GitNotificationType.ReopenedIssue:
                     {
                         let notify: boolean;
@@ -786,7 +799,7 @@ function setupWatcher(watcher: vscgn_watchers.GitWatcher) {
 
                 ITEMS.push({
                     action: () => {
-                        watcher.showInformationMessage(URL);
+                        vscode.window.showInformationMessage(URL);
                     },
                     title: 'Show URL',
                 }); 

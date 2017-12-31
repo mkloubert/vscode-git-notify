@@ -54,6 +54,14 @@ interface GitHubPullRequest {
     title?: string;
 }
 
+interface GitHubPush extends GitHubRequestWithRepository {
+    head_commit?: {
+        id?: string;
+        message?: string;
+        url?: string;
+    };
+}
+
 interface GitHubPullRequestRequest extends GitHubRequest, GitHubRequestWithRepository {
     action?: string;
     pull_request?: GitHubPullRequest;
@@ -190,6 +198,51 @@ export class GitHubWatcher extends vscgn_watchers.GitWebhookWatcher<GitHubWatche
         });
     }
 
+    private async handleGitHubPush(push: GitHubPush,
+                                   request: HTTP.IncomingMessage, response: HTTP.ServerResponse) {
+        if (!vscgn_helpers.isObject(push)) {
+            return;
+        }
+
+        if (!vscgn_helpers.isObject(push.head_commit)) {
+            return;
+        }
+
+        let repository: string;
+        if (vscgn_helpers.isObject(push.repository)) {
+            repository = push.repository.full_name;
+        }
+
+        let id = vscgn_helpers.toStringSafe(push.head_commit.id).trim();
+        let title = vscgn_helpers.toStringSafe(push.head_commit.message).trim();
+        if (title.length > 48) {
+            title = title.substr(0, 48).trim();
+            if ('' !== title) {
+                title = title + '...';
+            }
+        }
+
+        if (id.length >= 7) {
+            id = id.substr(0, 7).trim();
+        }
+
+        if ('' !== id) {
+            if ('' === title) {
+                title = id;
+            }
+            else {
+                title = `${title} (${id})`;
+            }
+        }
+
+        this.emitGitNotification({
+            repository: repository,
+            title: title,
+            type: vscgn_contracts.GitNotificationType.Push,
+            url: push.head_commit.url,
+        });
+    }
+
     private async handleGitHubRequest(fromGitHub: GitHubRequest,
                                       request: HTTP.IncomingMessage, response: HTTP.ServerResponse) {
         const GITHUB_EVENT = vscgn_helpers.normalizeString(request.headers['x-github-event']);
@@ -208,6 +261,11 @@ export class GitHubWatcher extends vscgn_watchers.GitWebhookWatcher<GitHubWatche
             case 'pull_request':
                 await this.handleGitHubPullRequests(<GitHubPullRequestRequest>fromGitHub,
                                                     request, response);
+                break;
+
+            case 'push':
+                await this.handleGitHubPush(<GitHubPush>fromGitHub,
+                                            request, response);
                 break;
         }
     }

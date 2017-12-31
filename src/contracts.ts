@@ -124,6 +124,10 @@ export enum GitNotificationType {
      */
     NewPullRequest,
     /**
+     * Pushes into repository.
+     */
+    Push,
+    /**
      * Re-Opened issue.
      */
     ReopenedIssue,
@@ -195,6 +199,10 @@ export interface WatcherSettings {
          */
         readonly reopened?: boolean;
     };
+    /**
+     * Notify when push has been made into the repository.
+     */
+    readonly push?: boolean;
     /**
      * The provider to use.
      */

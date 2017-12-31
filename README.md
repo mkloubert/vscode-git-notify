@@ -48,6 +48,7 @@ The following providers and events are supported:
 | ---- |:--:|:--:|:--:|:--:|
 | Closed issues | X | X | | X |
 | Closed pull requests | X | X | X | X |
+| New commit / push | | X | | |
 | New issues | X | X | | X |
 | New issue comments | X | X | | X |
 | New pull requests | X | X | X | X |
