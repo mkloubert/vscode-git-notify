@@ -1,0 +1,4 @@
+
+Icons:
+    - /icon.png (Alfredo Hernandez; https://www.iconfinder.com/AlfredoHernandez)
+    - /img/share/* (https://simplesharingbuttons.com)
