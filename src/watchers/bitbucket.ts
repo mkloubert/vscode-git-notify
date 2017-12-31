@@ -16,10 +16,22 @@
  */
 
 import * as HTTP from 'http';
+import * as Moment from 'moment';
 import * as vscgn_contracts from '../contracts';
 import * as vscgn_helpers from '../helpers';
 import * as vscgn_watchers from '../watchers';
 
+
+interface BitbucketCommit {
+    date?: string;
+    hash?: string;
+    links?: {
+        html?: {
+            href?: string;
+        };
+    };
+    message?: string;
+}
 
 interface BitbucketRequest {
 }
@@ -50,6 +62,14 @@ interface BitbucketIssues extends BitbucketRequestWithChanges, BitbucketRequestW
             };
         };
         title?: string;
+    };
+}
+
+interface BitbucketPush extends BitbucketRequestWithRepository {
+    push?: {
+        changes?: {
+            commits?: BitbucketCommit[];
+        }
     };
 }
 
@@ -206,6 +226,96 @@ export class BitbucketWatcher extends vscgn_watchers.GitWebhookWatcher<Bitbucket
         });
     }
 
+    private async handleBitbucketPush(push: BitbucketPush,
+                                      request: HTTP.IncomingMessage, response: HTTP.ServerResponse) {
+        if (!vscgn_helpers.isObject(push)) {
+            return;
+        }
+
+        if (!vscgn_helpers.isObject(push.push)) {
+            return;
+        }
+
+        let allCommits: BitbucketCommit[] = [];
+
+        vscgn_helpers.asArray(push.push.changes).filter(chg => {
+            return vscgn_helpers.isObject(chg);
+        }).forEach(chg => {
+            vscgn_helpers.asArray(chg.commits).filter(c => {
+                return vscgn_helpers.isObject(c);
+            }).forEach(c => {
+                allCommits.push(c);
+            });
+        });
+
+        allCommits = allCommits.sort((x, y) => {
+            return vscgn_helpers.compareValuesBy(y, x, c => {
+                const DATE = vscgn_helpers.toStringSafe(c.date).trim();
+                if ('' !== DATE) {
+                    const TIME = Moment(DATE);
+                    if (TIME.isValid()) {
+                        return TIME.unix();
+                    }
+                }
+            });
+        });
+
+        if (allCommits.length < 1) {
+            return;
+        }
+
+        const HEAD_COMMIT = allCommits[0];
+
+        let url: string;
+        if (vscgn_helpers.isObject(HEAD_COMMIT.links)) {
+            if (vscgn_helpers.isObject(HEAD_COMMIT.links.html)) {
+                url = HEAD_COMMIT.links.html.href;
+            }
+        }
+
+        let repository: string;
+        if (vscgn_helpers.isObject(push.repository)) {
+            repository = vscgn_helpers.toStringSafe(push.repository.name).trim();
+            if (vscgn_helpers.isObject(push.repository.owner)) {
+                const USERNAME = vscgn_helpers.toStringSafe(push.repository.owner.username).trim();
+                if ('' !== USERNAME) {
+                    repository = USERNAME + 
+                                 ('' !== repository ? '/' : '') + 
+                                 repository;
+                }
+            }
+        }
+
+        let id = vscgn_helpers.toStringSafe(HEAD_COMMIT.hash).trim();
+        let title = vscgn_helpers.toStringSafe(HEAD_COMMIT.message).trim();
+        if (title.length > 48) {
+            title = title.substr(0, 48).trim();
+            if ('' !== title) {
+                title = title + '...';
+            }
+        }
+
+        if (id.length >= 7) {
+            id = id.substr(0, 7).trim();
+        }
+
+        if ('' !== id) {
+            if ('' === title) {
+                title = id;
+            }
+            else {
+                title = `${title} (${id})`;
+            }
+        }
+
+        this.emitGitNotification({
+            repository: repository,
+            title: title,
+            type: vscgn_contracts.GitNotificationType.Push,
+            url: url,
+        });
+    }
+
     private async handleBitbucketRequest(fromBitbucket: BitbucketRequest,
                                          request: HTTP.IncomingMessage, response: HTTP.ServerResponse) {
         const EVENT = vscgn_helpers.normalizeString(request.headers['x-event-key']);
@@ -219,6 +329,12 @@ export class BitbucketWatcher extends vscgn_watchers.GitWebhookWatcher<Bitbucket
         else if (EVENT.startsWith('pullrequest:')) {
             await this.handleBitbucketPullRequest(
                 <BitbucketPullRequest>fromBitbucket,
+                request, response,
+            );
+        }
+        else if ('repo:push' === EVENT) {
+            await this.handleBitbucketPush(
+                <BitbucketPush>fromBitbucket,
                 request, response,
             );
         }
