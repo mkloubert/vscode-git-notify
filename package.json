@@ -2,7 +2,7 @@
     "name": "vscode-git-notify",
     "displayName": "Git Notify",
     "description": "Receives and shows git events from webhooks.",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "publisher": "mkloubert",
     "engines": {
         "vscode": "^1.19.0"
