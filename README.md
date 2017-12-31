@@ -9,6 +9,9 @@
 
 1. [Install](#install-)
 2. [How to use](#how-to-use-)
+   * [Settings](#settings-)
+     * [GitHub](#github-)
+     * [Secure HTTP](#secure-http-)
 3. [Support and contribute](#support-and-contribute-)
 
 ## Install [[&uarr;](#table-of-contents)]
@@ -23,15 +26,91 @@ Or search for things like `vscode-git-notify` in your editor.
 
 ## How to use [[&uarr;](#table-of-contents)]
 
-@TODO
+### Settings [[&uarr;](#how-to-use-)]
+
+Open (or create) your `settings.json` in your `.vscode` subfolder of your workspace.
+
+Add a `deploy.reloaded` section and one or more "watchers":
+
+```json
+{
+    "git.notify": {
+    }
+}
+```
+
+#### GitHub [[&uarr;](#settings-)]
+
+First you have to create a webhook for your repository.
+
+Click on the `Settings` tab and select `Webhooks` on the left side:
+
+![Demo Select repo settings](https://raw.githubusercontent.com/mkloubert/github-webhook-test/master/img/github_webhooks_1.png)
+
+Click on `Add webhook` button:
+
+![Demo Add webhook button](https://raw.githubusercontent.com/mkloubert/github-webhook-test/master/img/github_webhooks_2.png)
+
+Setup the URL, that should be called for an event. This URL must be able to redirect to your machine, where your VS Code instance runs. For that, you should check your firewall settings.
+
+![Demo Create web hook](https://raw.githubusercontent.com/mkloubert/github-webhook-test/master/img/github_webhooks_3.png)
+
+Now, you can define a watcher in your settings (it is recommended to do this globally - `CTRL + ,` / `CMD + ,`):
+
+```json
+{
+    "git.notify": {
+        "watchers": {
+            "80": [
+                {
+                    "secret": "Test 1 2 3"
+                }
+            ]
+        }
+    }
+}
+```
+
+This will open a HTTP server instance on your machine on port `80` on startup, by using `Test 1 2 3` as secret expression as defined in the webhooks settings.
+
+#### Secure HTTP [[&uarr;](#settings-)]
+
+It is highly recommended, to setup secure HTTPS instead of plain HTTP:
+
+```json
+{
+    "git.notify": {
+        "watchers": {
+            "443": [
+                {
+                    "secure": true,
+
+                    "ca": "/path/to/ssl/fullchain.pem",
+                    "cert": "/path/to/ssl/cert.pem",
+                    "key": "/path/to/ssl/privkey.pem",
+
+                    "secret": "Test 1 2 3"
+                }
+            ]
+        }
+    }
+}
+```
+
+You can also use relative paths for the SSL files, of course. Those paths are tried to be mapped in the following order:
+
+* `${HOME_DIR}/.ssl`
+* `${WORKSPACE}/.vscode` (works also with [multi workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces))
+
+If you use a self-signed certificate, you should disable SSL verification in your git provider / hoster.
+
+In GitHub, e.g., you have to click on `Disable SSL verification` button, when adding a web hook:
+
+![Demo Disable SSL verification in GitHub](https://raw.githubusercontent.com/mkloubert/github-webhook-test/master/img/github_webhooks_4.png)
 
 ## Support and contribute [[&uarr;](#table-of-contents)]
 
-If you like the extension, you can support the project by sending a donation
-
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://paypal.me/MarcelKloubert)
-
-to [me](https://github.com/mkloubert).
+If you like the extension, you can support the project by sending a [donation via PayPal](https://paypal.me/MarcelKloubert) to [me](https://github.com/mkloubert).
 
 To contribute, you can [open an issue](https://github.com/mkloubert/vscode-git-notify/issues) and/or fork this repository.
 

@@ -2,7 +2,7 @@
     "name": "vscode-git-notify",
     "displayName": "Git Notify",
     "description": "Receives and shows git events from webhooks.",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "mkloubert",
     "engines": {
         "vscode": "^1.19.0"
@@ -21,7 +21,136 @@
         "*"
     ],
     "main": "./out/extension",
-    "contributes": {},
+    "contributes": {
+        "configuration": {
+            "properties": {
+                "git.notify": {
+                    "type": "object",
+                    "scope": "resource",
+                    "properties": {
+                        "disableAll": {
+                            "description": "Disable all watchers or not.",
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "disabledPorts": {
+                            "description": "One or more ports to disable (blacklist).",
+                            "type": "array",
+                            "items": {
+                                "description": "The TCP port to disable.",
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 65535
+                            }
+                        },
+                        "enabledPorts": {
+                            "description": "One or more ports to enable (whitelist).",
+                            "type": "array",
+                            "items": {
+                                "description": "The TCP port to disable.",
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 65535
+                            }
+                        },
+                        "watchers": {
+                            "description": "Defines of or more watchers which are grouped by TCP ports.",
+                            "type": "object",
+                            "patternProperties": {
+                                "([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$": {
+                                    "description": "The TCP port.",
+                                    "type": "array",
+                                    "items": {
+                                        "oneOf": [
+                                            {
+                                                "description": "Waits for GitHub webhooks on an UNSECURE HTTP connection.",
+                                                "type": "null"
+                                            },
+                                            {
+                                                "description": "Wait for webhooks of a specific git provider on an UNSECURE HTTP connection.",
+                                                "type": "string",
+                                                "enum": [
+                                                    "",
+                                                    "github"
+                                                ],
+                                                "default": "github"
+                                            },
+                                            {
+                                                "description": "Settings for a git provider.",
+                                                "type": "object",
+                                                "properties": {
+                                                    "ca": {
+                                                        "description": "The path to the SSL's ca file.",
+                                                        "type": "string"
+                                                    },
+                                                    "cert": {
+                                                        "description": "The path to the SSL's cert file.",
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": {
+                                                        "description": "Indicates if watcher is enabled or not.",
+                                                        "type": "boolean",
+                                                        "default": true
+                                                    },
+                                                    "issues": {
+                                                        "description": "Sets up issue based events.",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "closed": {
+                                                                "description": "Notify when issue has been closed.",
+                                                                "type": "boolean",
+                                                                "default": true
+                                                            },
+                                                            "created": {
+                                                                "description": "Notify when new issue has been created.",
+                                                                "type": "boolean",
+                                                                "default": true
+                                                            },
+                                                            "newComment": {
+                                                                "description": "Notify when a new comment has been made in an issue.",
+                                                                "type": "boolean",
+                                                                "default": true
+                                                            },
+                                                            "reopened": {
+                                                                "description": "Notify when issue has been re-opened.",
+                                                                "type": "boolean",
+                                                                "default": true
+                                                            }
+                                                        }
+                                                    },
+                                                    "key": {
+                                                        "description": "The path to the SSL's key file.",
+                                                        "type": "string"
+                                                    },
+                                                    "provider": {
+                                                        "description": "The git provider.",
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "",
+                                                            "github"
+                                                        ],
+                                                        "default": "github"
+                                                    },
+                                                    "secret": {
+                                                        "description": "A value that should be used to verify the request."
+                                                    },
+                                                    "secure": {
+                                                        "description": "Use secure HTTP connection or not.",
+                                                        "type": "boolean",
+                                                        "default": false
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
     "scripts": {
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",

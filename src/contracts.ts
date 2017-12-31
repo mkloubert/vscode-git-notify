@@ -15,8 +15,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import * as HTTP from 'http';
+import * as HTTPs from 'https';
 import * as vscode from 'vscode';
 
+
+
+/**
+ * A message item with an action and an optional state value to submit.
+ */
+export interface ActionMessageItem<TState = any> extends vscode.MessageItem {
+    /**
+     * The action.
+     * 
+     * @param {TState} [state] The state value (if submitted).
+     */
+    action?: (state?: TState) => any;
+    /**
+     * The state value for the action.
+     */
+    state?: TState;
+}
 
  /**
  * Stores data of configuration source.
@@ -36,7 +55,88 @@ export interface ConfigSource {
  * App settings.
  */
 export interface Configuration extends vscode.WorkspaceConfiguration {
+    /**
+     * Disable all watchers or not.
+     */
+    readonly disableAll?: boolean;
+    /**
+     * One or more TCP ports to disable (blacklist).
+     */
+    readonly disabledPorts?: number | number[];
+    /**
+     * One or more TCP ports to enable (whitelist).
+     */
+    readonly enabledPorts?: number | number[];
+    /**
+     * A list of watcher settings.
+     */
+    readonly watchers?: { [ port: string ]: WatcherSettingValue | WatcherSettingValue[] }
 }
+
+/**
+ * Settings for a watcher.
+ */
+export interface WatcherSettings {
+    /**
+     * The path to the SSL's ca file.
+     */
+    readonly ca?: string;
+    /**
+     * The path to the SSL's cert file.
+     */
+    readonly cert?: string;
+    /**
+     * Indicates if watcher is enabled or not.
+     */
+    readonly enabled?: boolean;
+    /**
+     * Sets up issue based events.
+     */
+    readonly issues?: {
+        /**
+         * Notify when issue has been closed.
+         */
+        readonly closed?: boolean;
+        /**
+         * Notify when new issue has been created.
+         */
+        readonly created?: boolean;
+        /**
+         * Notify when a new comment has been made in an issue.
+         */
+        readonly newComment?: boolean;
+        /**
+         * Notify when issue has been re-opened.
+         */
+        readonly reopened?: boolean;
+    };
+    /**
+     * The path to the SSL's key file.
+     */
+    readonly key?: string;
+    /**
+     * The provider to use.
+     */
+    readonly provider?: string;
+    /**
+     * A value that should be used to verify the request.
+     */
+    readonly secret?: any;
+    /**
+     * Run on secure HTTP or not.
+     */
+    readonly secure?: boolean;
+}
+
+/**
+ * A possible value for watcher settings.
+ */
+export type WatcherSettingValue = null | string | WatcherSettings;
+
+/**
+ * A possible value for a HTTP(s) server.
+ */
+export type HttpServer = HTTP.Server | HTTPs.Server;
 
 
 /**
@@ -64,6 +164,30 @@ export const EVENT_DEACTIVATED = 'deactivated';
  */
 export const EVENT_DEACTIVATING = 'deactivating';
 /**
+ * Name of the event when the object has been disposed.
+ */
+export const EVENT_DISPOSED = 'disposed';
+/**
+ * Name of the event when the object is going to be disposed.
+ */
+export const EVENT_DISPOSING = 'disposing';
+/**
  * The name of that extension.
  */
 export const EXTENSION_NAME = 'vscode-git-notify';
+/**
+ * Name of the event when the object has been started.
+ */
+export const EVENT_STARTED = 'started';
+/**
+ * Name of the event when the object is going to be started.
+ */
+export const EVENT_STARTING = 'starting';
+/**
+ * Name of the event when the object has been stopped.
+ */
+export const EVENT_STOPPED = 'stopped';
+/**
+ * Name of the event when the object is going to be stopped.
+ */
+export const EVENT_STOPPING = 'stopping';
