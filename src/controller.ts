@@ -453,7 +453,11 @@ function createHttpServerForWatchers(port: number,
                 }
             },
             server: undefined,
-            watchers: watchers.map(w => w),
+            watchers: watchers.map(w => {
+                setupWatcher(w);
+
+                return w;
+            }),
         };
 
         const REQUEST_HANDLER = (request: HTTP.IncomingMessage, response: HTTP.ServerResponse) => {
@@ -585,6 +589,237 @@ function createHttpServerForWatchers(port: number,
         }
         catch (e) {
             COMPLETED(e);
+        }
+    });
+}
+
+
+function getTitleSuffixForNotification(notification: vscgn_contracts.GitNotification) {
+    if (!notification) {
+        return '';
+    }
+
+    let title = vscgn_helpers.toStringSafe(notification.title).trim();
+    if (title.length > 48) {
+        title = title.substr(0, 48).trim();
+        if ('' !== title) {
+            title += '...';
+        }
+    }
+
+    const NR = parseInt(
+        vscgn_helpers.toStringSafe(notification.nr).trim()
+    );
+
+    let issueTitleSuffix = '' === title ? ''
+                                        : `'${title}'`;
+    if (!isNaN(NR)) {
+        issueTitleSuffix = `#${NR} ` + issueTitleSuffix;
+    }
+    issueTitleSuffix = issueTitleSuffix.trim();
+    if ('' !== issueTitleSuffix) {
+        issueTitleSuffix = ' ' + issueTitleSuffix;
+    }
+
+    return issueTitleSuffix;
+}
+
+function setupWatcher(watcher: vscgn_watchers.GitWatcher) {
+    if (!watcher) {
+        return;
+    }
+
+    watcher.on(vscgn_contracts.EVENT_GIT_NOTIFICATION, (notification: vscgn_contracts.GitNotification) => {
+        try {
+            const REPOSITORY = vscgn_helpers.toStringSafe(notification.repository).trim();
+            const TITLE_SUFFIX = getTitleSuffixForNotification(notification);
+            const URL = vscgn_helpers.toStringSafe(notification.url).trim();
+
+            let message: string;
+            switch (notification.type) {
+                case vscgn_contracts.GitNotificationType.ClosedIssue:
+                    {
+                        let notify: boolean;
+                        if (vscgn_helpers.isObject(watcher.settings.issues)) {
+                            notify = watcher.settings.issues.closed;   
+                        }
+
+                        if (vscgn_helpers.toBooleanSafe(notify, true)) {
+                            if ('' !== REPOSITORY) {
+                                message = `Issue${TITLE_SUFFIX} closed in '${REPOSITORY}'!`;
+                            }
+                            else {
+                                message = `Issue${TITLE_SUFFIX} closed!`;
+                            }
+                        }
+                    }
+                    break;
+
+                case vscgn_contracts.GitNotificationType.ClosedPullRequest:
+                    {
+                        let notify: boolean;
+                        if (vscgn_helpers.isObject(watcher.settings.pullRequests)) {
+                            notify = watcher.settings.pullRequests.closed;   
+                        }
+
+                        if (vscgn_helpers.toBooleanSafe(notify, true)) {
+                            if ('' !== REPOSITORY) {
+                                message = `Pull request${TITLE_SUFFIX} closed in '${REPOSITORY}'!`;
+                            }
+                            else {
+                                message = `Pull request${TITLE_SUFFIX} closed!`;
+                            }
+                        }
+                    }
+                    break;
+
+                case vscgn_contracts.GitNotificationType.NewIssue:
+                    {
+                        let notify: boolean;
+                        if (vscgn_helpers.isObject(watcher.settings.issues)) {
+                            notify = watcher.settings.issues.opened;   
+                        }
+
+                        if (vscgn_helpers.toBooleanSafe(notify, true)) {
+                            if ('' !== REPOSITORY) {
+                                message = `New issue${TITLE_SUFFIX} opened in '${REPOSITORY}'!`;
+                            }
+                            else {
+                                message = `New issue opened${TITLE_SUFFIX}!`;
+                            }
+                        }
+                    }
+                    break;
+
+                case vscgn_contracts.GitNotificationType.NewPullRequest:
+                    {
+                        let notify: boolean;
+                        if (vscgn_helpers.isObject(watcher.settings.pullRequests)) {
+                            notify = watcher.settings.pullRequests.opened;   
+                        }
+
+                        if (vscgn_helpers.toBooleanSafe(notify, true)) {
+                            if ('' !== REPOSITORY) {
+                                message = `New pull request${TITLE_SUFFIX} in '${REPOSITORY}'!`;
+                            }
+                            else {
+                                message = `New pull request opened${TITLE_SUFFIX}!`;
+                            }
+                        }
+                    }
+                    break;
+
+                case vscgn_contracts.GitNotificationType.NewIssueComment:
+                    {
+                        let notify: boolean;
+                        if (vscgn_helpers.isObject(watcher.settings.issues)) {
+                            notify = watcher.settings.issues.newComment;   
+                        }
+
+                        if (vscgn_helpers.toBooleanSafe(notify, true)) {
+                            if ('' !== REPOSITORY) {
+                                message = `New comment in issue${TITLE_SUFFIX} of '${REPOSITORY}'!`;
+                            }
+                            else {
+                                message = `New comment in issue${TITLE_SUFFIX}!`;
+                            }
+                        }
+                    }
+                    break;
+
+                case vscgn_contracts.GitNotificationType.ReopenedIssue:
+                    {
+                        let notify: boolean;
+                        if (vscgn_helpers.isObject(watcher.settings.issues)) {
+                            notify = watcher.settings.issues.reopened;   
+                        }
+
+                        if (vscgn_helpers.toBooleanSafe(notify, true)) {
+                            if ('' !== REPOSITORY) {
+                                message = `Issue${TITLE_SUFFIX} has been re-opened in '${REPOSITORY}'!`;
+                            }
+                            else {
+                                message = `Issue${TITLE_SUFFIX} has been re-opened!`;
+                            }
+                        }
+                    }
+                    break;
+
+                case vscgn_contracts.GitNotificationType.ReopenedPullRequest:
+                    {
+                        let notify: boolean;
+                        if (vscgn_helpers.isObject(watcher.settings.pullRequests)) {
+                            notify = watcher.settings.pullRequests.reopened;   
+                        }
+
+                        if (vscgn_helpers.toBooleanSafe(notify, true)) {
+                            if ('' !== REPOSITORY) {
+                                message = `Pull request${TITLE_SUFFIX} has been re-opened in '${REPOSITORY}'!`;
+                            }
+                            else {
+                                message = `Pull request${TITLE_SUFFIX} has been re-opened!`;
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            if (vscgn_helpers.isEmptyString(message)) {
+                return;
+            }
+
+            const ITEMS: vscgn_contracts.ActionMessageItem[] = [];
+
+            if ('' !== URL) {
+                ITEMS.push({
+                    action: () => {
+                        vscgn_helpers.open(URL, {
+                            wait: false,
+                        }).then(() => {
+                        }, (err) => {
+                            vscgn_log.CONSOLE
+                                     .trace(err, `controller.setupWatcher(4::${vscgn_contracts.EVENT_GIT_NOTIFICATION})`);
+                        });
+                    },
+                    title: 'Open',
+                }); 
+
+                ITEMS.push({
+                    action: () => {
+                        watcher.showInformationMessage(URL);
+                    },
+                    title: 'Show URL',
+                }); 
+            }
+
+            ITEMS.push({
+                title: 'Close',
+                isCloseAffordance: true,
+            });
+
+            watcher.showWarningMessage(message, ITEMS).then((selectedItem) => {
+                if (!selectedItem) {
+                    return;
+                }
+    
+                try {
+                    if (selectedItem.action) {
+                        Promise.resolve( selectedItem.action() ).then(() => {
+                        }, (err) => {
+                            vscgn_log.CONSOLE
+                                     .trace(err, `controller.setupWatcher(3::${vscgn_contracts.EVENT_GIT_NOTIFICATION})`);
+                        });
+                    }
+                }
+                catch (e) {
+                    vscgn_log.CONSOLE
+                             .trace(e, `controller.setupWatcher(2::${vscgn_contracts.EVENT_GIT_NOTIFICATION})`);
+                }
+            });
+        }
+        catch (e) {
+            vscgn_log.CONSOLE
+                     .trace(e, `controller.setupWatcher(1::${vscgn_contracts.EVENT_GIT_NOTIFICATION})`);
         }
     });
 }

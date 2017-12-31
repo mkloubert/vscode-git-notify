@@ -49,6 +49,17 @@ interface GitHubIssues extends GitHubIssueRequest, GitHubRequestWithRepository {
 interface GitHubIssueComment extends GitHubIssueRequest, GitHubRequestWithRepository {
 }
 
+interface GitHubPullRequest {
+    html_url?: string;
+    number?: number;
+    title?: string;
+}
+
+interface GitHubPullRequestRequest extends GitHubRequest, GitHubRequestWithRepository {
+    action?: string;
+    pull_request?: GitHubPullRequest;
+}
+
 /**
  * Settings for a GitHub watcher.
  */
@@ -70,76 +81,19 @@ export class GitHubWatcher extends vscgn_watchers.GitWebhookWatcher<GitHubWatche
             return;
         }
 
-        if (!this.notifyOnNewIssueComment) {
-            return;
-        }
-
-        const URL = vscgn_helpers.toStringSafe(issueComment.issue.html_url)
-                                 .trim();
-
         let repository: string;
         if (vscgn_helpers.isObject(issueComment.repository)) {
             repository = issueComment.repository.full_name;
         }
-        repository = vscgn_helpers.toStringSafe(repository).trim();
 
-        const ITEMS: vscgn_contracts.ActionMessageItem[] = [];
-        
-        const NR = parseInt(
-            vscgn_helpers.toStringSafe(issueComment.issue.number).trim()
-        );
-
-        const ISSUE_TITLE_SUFFIX = getIssueTitleSuffix(issueComment.issue);
-
-        let message: string;
-        if ('' !== repository) {
-            message = `New comment in issue${ISSUE_TITLE_SUFFIX} of '${repository}'!`;
-        }
-        else {
-            message = `New comment in issue${ISSUE_TITLE_SUFFIX}!`;
-        }
-
-        if ('' !== URL) {
-            ITEMS.push({
-                action: () => {
-                    vscgn_helpers.open(URL, {
-                        wait: false,
-                    }).then(() => {
-                    }, (err) => {
-                        vscgn_log.CONSOLE
-                                 .trace(err, 'watchers.github.GitHubWatcher().handleGitHubIssueComment(4)');
-                    });
-                },
-                title: 'Open ...',
-            });    
-        }
-
-        ITEMS.push({
-            title: 'Close',
-            isCloseAffordance: true,
-        });
-
-        this.showWarningMessage(message, ITEMS).then((selectedItem) => {
-            if (!selectedItem) {
-                return;
-            }
-
-            try {
-                if (selectedItem.action) {
-                    Promise.resolve( selectedItem.action() ).then(() => {
-                    }, (err) => {
-                        vscgn_log.CONSOLE
-                                 .trace(err, 'watchers.github.GitHubWatcher().handleGitHubIssueComment(3)');
-                    });
-                }
-            }
-            catch (e) {
-                vscgn_log.CONSOLE
-                         .trace(e, 'watchers.github.GitHubWatcher().handleGitHubIssueComment(2)');
-            }
-        }, (err) => {
-            vscgn_log.CONSOLE
-                     .trace(err, 'watchers.github.GitHubWatcher().handleGitHubIssueComment(1)');
+        this.emitGitNotification({
+            repository: repository,
+            nr: parseInt(
+                vscgn_helpers.toStringSafe(issueComment.issue.number).trim()
+            ),
+            title: issueComment.issue.title,
+            type: vscgn_contracts.GitNotificationType.NewIssueComment,
+            url: issueComment.issue.html_url,
         });
     }
 
@@ -153,106 +107,87 @@ export class GitHubWatcher extends vscgn_watchers.GitWebhookWatcher<GitHubWatche
             return;
         }
 
-        const URL = vscgn_helpers.toStringSafe(issues.issue.html_url)
-                                 .trim();
-
         let repository: string;
         if (vscgn_helpers.isObject(issues.repository)) {
             repository = issues.repository.full_name;
         }
-        repository = vscgn_helpers.toStringSafe(repository).trim();
 
-        const NR = parseInt(
-            vscgn_helpers.toStringSafe(issues.issue.number).trim()
-        );
-
-        const ISSUE_TITLE_SUFFIX = getIssueTitleSuffix(issues.issue);
-
-        const ITEMS: vscgn_contracts.ActionMessageItem[] = [];
-
-        let message: string;
+        let notificationType: vscgn_contracts.GitNotificationType | false = false;
 
         const ACTION = vscgn_helpers.normalizeString(issues.action);
         switch (ACTION) {
             case 'closed':
-                if (this.notifyOnClosedIssue) {
-                    if ('' !== repository) {
-                        message = `Issue${ISSUE_TITLE_SUFFIX} closed in '${repository}'!`;
-                    }
-                    else {
-                        message = `Issue${ISSUE_TITLE_SUFFIX} closed!`;
-                    }
-                }
+                notificationType = vscgn_contracts.GitNotificationType.ClosedIssue;
                 break;
 
             case 'opened':
-                if (this.notifyOnNewIssue) {
-                    if ('' !== repository) {
-                        message = `New issue${ISSUE_TITLE_SUFFIX} opened in '${repository}'!`;
-                    }
-                    else {
-                        message = `New issue opened${ISSUE_TITLE_SUFFIX}!`;
-                    }
-                }
+                notificationType = vscgn_contracts.GitNotificationType.NewIssue;
                 break;
 
             case 'reopened':
-                if (this.notifyOnReopenedIssue) {
-                    if ('' !== repository) {
-                        message = `Issue${ISSUE_TITLE_SUFFIX} has been reopened in '${repository}'!`;
-                    }
-                    else {
-                        message = `Issue${ISSUE_TITLE_SUFFIX} has been reopened!`;
-                    }
-                }
+                notificationType = vscgn_contracts.GitNotificationType.ReopenedIssue;
                 break;
         }
 
-        if (vscgn_helpers.isEmptyString(message)) {
+        if (false === notificationType) {
             return;
         }
 
-        if ('' !== URL) {
-            ITEMS.push({
-                action: () => {
-                    vscgn_helpers.open(URL, {
-                        wait: false,
-                    }).then(() => {
-                    }, (err) => {
-                        vscgn_log.CONSOLE
-                                 .trace(err, 'watchers.github.GitHubWatcher().handleGitHubIssues(4)');
-                    });
-                },
-                title: 'Open ...',
-            });    
+        this.emitGitNotification({
+            repository: repository,
+            nr: parseInt(
+                vscgn_helpers.toStringSafe(issues.issue.number).trim()
+            ),
+            title: issues.issue.title,
+            type: notificationType,
+            url: issues.issue.html_url,
+        });
+    }
+
+    private async handleGitHubPullRequests(pullRequest: GitHubPullRequestRequest,
+                                           request: HTTP.IncomingMessage, response: HTTP.ServerResponse) {
+        if (!vscgn_helpers.isObject(pullRequest)) {
+            return;
         }
 
-        ITEMS.push({
-            title: 'Close',
-            isCloseAffordance: true,
-        });
+        if (!vscgn_helpers.isObject(pullRequest.pull_request)) {
+            return;
+        }
 
-        this.showWarningMessage(message, ITEMS).then((selectedItem) => {
-            if (!selectedItem) {
-                return;
-            }
+        let repository: string;
+        if (vscgn_helpers.isObject(pullRequest.repository)) {
+            repository = pullRequest.repository.full_name;
+        }
 
-            try {
-                if (selectedItem.action) {
-                    Promise.resolve( selectedItem.action() ).then(() => {
-                    }, (err) => {
-                        vscgn_log.CONSOLE
-                                 .trace(err, 'watchers.github.GitHubWatcher().handleGitHubIssues(3)');
-                    });
-                }
-            }
-            catch (e) {
-                vscgn_log.CONSOLE
-                         .trace(e, 'watchers.github.GitHubWatcher().handleGitHubIssues(2)');
-            }
-        }, (err) => {
-            vscgn_log.CONSOLE
-                     .trace(err, 'watchers.github.GitHubWatcher().handleGitHubIssues(1)');
+        let notificationType: vscgn_contracts.GitNotificationType | false = false;
+
+        const ACTION = vscgn_helpers.normalizeString(pullRequest.action);
+        switch (ACTION) {
+            case 'closed':
+                notificationType = vscgn_contracts.GitNotificationType.ClosedPullRequest;
+                break;
+
+            case 'opened':
+                notificationType = vscgn_contracts.GitNotificationType.NewPullRequest;
+                break;
+
+            case 'reopened':
+                notificationType = vscgn_contracts.GitNotificationType.ReopenedPullRequest;
+                break;
+        }
+
+        if (false === notificationType) {
+            return;
+        }
+
+        this.emitGitNotification({
+            repository: repository,
+            nr: parseInt(
+                vscgn_helpers.toStringSafe(pullRequest.pull_request.number).trim()
+            ),
+            title: pullRequest.pull_request.title,
+            type: notificationType,
+            url: pullRequest.pull_request.html_url,
         });
     }
 
@@ -269,6 +204,11 @@ export class GitHubWatcher extends vscgn_watchers.GitWebhookWatcher<GitHubWatche
             case 'issues':
                 await this.handleGitHubIssues(<GitHubIssues>fromGitHub,
                                               request, response);
+                break;
+
+            case 'pull_request':
+                await this.handleGitHubPullRequests(<GitHubPullRequestRequest>fromGitHub,
+                                                    request, response);
                 break;
         }
     }
@@ -358,34 +298,4 @@ export class GitHubWatcher extends vscgn_watchers.GitWebhookWatcher<GitHubWatche
     public get providerName(): string {
         return 'GitHub';
     }
-}
-
-function getIssueTitleSuffix(issue: GitHubIssue) {
-    if (!issue) {
-        return '';
-    }
-
-    let title = vscgn_helpers.toStringSafe(issue.title).trim();
-    if (title.length > 48) {
-        title = title.substr(0, 48).trim();
-        if ('' !== title) {
-            title += '...';
-        }
-    }
-
-    const NR = parseInt(
-        vscgn_helpers.toStringSafe(issue.number).trim()
-    );
-
-    let issueTitleSuffix = '' === title ? ''
-                                        : `'${title}'`;
-    if (!isNaN(NR)) {
-        issueTitleSuffix = `#${NR} ` + issueTitleSuffix;
-    }
-    issueTitleSuffix = issueTitleSuffix.trim();
-    if ('' !== issueTitleSuffix) {
-        issueTitleSuffix = ' ' + issueTitleSuffix;
-    }
-
-    return issueTitleSuffix;
 }

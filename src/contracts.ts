@@ -74,6 +74,66 @@ export interface Configuration extends vscode.WorkspaceConfiguration {
 }
 
 /**
+ * A git notification.
+ */
+export interface GitNotification {
+    /**
+     * A number of the thing that notifies.
+     */
+    readonly nr?: number;
+    /**
+     * The full name of the underlying repository.
+     */
+    readonly repository?: string;
+    /**
+     * A title of the thing that notifies.
+     */
+    readonly title?: string;
+    /**
+     * The type.
+     */
+    readonly type: GitNotificationType;
+    /**
+     * A URL to open in browser.
+     */
+    readonly url?: string;
+}
+
+/**
+ * Type of a git notification.
+ */
+export enum GitNotificationType {
+    /**
+     * Issue closed.
+     */
+    ClosedIssue,
+    /**
+     * Issue pull request.
+     */
+    ClosedPullRequest,
+    /**
+     * New issue.
+     */
+    NewIssue,
+    /**
+     * A new issue comment.
+     */
+    NewIssueComment,
+    /**
+     * New pull request.
+     */
+    NewPullRequest,
+    /**
+     * Re-Opened issue.
+     */
+    ReopenedIssue,
+    /**
+     * Re-Opened pull request.
+     */
+    ReopenedPullRequest,
+}
+
+/**
  * Settings for a watcher.
  */
 export interface WatcherSettings {
@@ -98,13 +158,13 @@ export interface WatcherSettings {
          */
         readonly closed?: boolean;
         /**
-         * Notify when new issue has been created.
-         */
-        readonly created?: boolean;
-        /**
          * Notify when a new comment has been made in an issue.
          */
         readonly newComment?: boolean;
+        /**
+         * Notify when new issue has been opened.
+         */
+        readonly opened?: boolean;
         /**
          * Notify when issue has been re-opened.
          */
@@ -114,6 +174,27 @@ export interface WatcherSettings {
      * The path to the SSL's key file.
      */
     readonly key?: string;
+    /**
+     * A (display) name for that watcher.
+     */
+    readonly name?: string;
+    /**
+     * Sets up pull request based events.
+     */
+    readonly pullRequests?: {
+        /**
+         * Notify when pull request has been closed.
+         */
+        readonly closed?: boolean;
+        /**
+         * Notify when new pull request has been opened.
+         */
+        readonly opened?: boolean;
+        /**
+         * Notify when pull request has been re-opened.
+         */
+        readonly reopened?: boolean;
+    };
     /**
      * The provider to use.
      */
@@ -172,9 +253,9 @@ export const EVENT_DISPOSED = 'disposed';
  */
 export const EVENT_DISPOSING = 'disposing';
 /**
- * The name of that extension.
+ * Name of an event that receives a git notification.
  */
-export const EXTENSION_NAME = 'vscode-git-notify';
+export const EVENT_GIT_NOTIFICATION = 'git.notification';
 /**
  * Name of the event when the object has been started.
  */
@@ -191,3 +272,7 @@ export const EVENT_STOPPED = 'stopped';
  * Name of the event when the object is going to be stopped.
  */
 export const EVENT_STOPPING = 'stopping';
+/**
+ * The name of that extension.
+ */
+export const EXTENSION_NAME = 'vscode-git-notify';

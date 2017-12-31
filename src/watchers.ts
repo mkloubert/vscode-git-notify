@@ -39,9 +39,31 @@ export interface GitWatcher<TSettings extends vscgn_contracts.WatcherSettings = 
      */
     readonly isRunning: boolean;
     /**
+     * The (display) name of the watcher.
+     */
+    readonly name: string;
+    /**
      * Gets the underlying settings.
      */
     readonly settings: TSettings;
+    /**
+     * Promise (and safe) version of 'vscode.window.showInformationMessage()' function for that watcher.
+     * 
+     * @param {any} msg The message to display.
+     * @param {TItem[]} [items] The optional items.
+     * 
+     * @return {Promise<TItem>} The promise with the selected item.
+     */
+    showInformationMessage<TItem extends vscode.MessageItem = vscode.MessageItem>(msg: any, items?: TItem[]): PromiseLike<TItem>;
+    /**
+     * Promise (and safe) version of 'vscode.window.showWarningMessage()' function for that watcher.
+     * 
+     * @param {any} msg The message to display.
+     * @param {TItem[]} [items] The optional items.
+     * 
+     * @return {Promise<TItem>} The promise with the selected item.
+     */
+    showWarningMessage<TItem extends vscode.MessageItem = vscode.MessageItem>(msg: any, items?: TItem[]): PromiseLike<TItem>;
     /**
      * Starts the watcher.
      * 
@@ -124,55 +146,25 @@ export abstract class GitWatcherBase<TSettings extends vscgn_contracts.WatcherSe
     public isRunning = false;
 
     /**
-     * Notify when issue has been closed.
+     * Sends a git notification event.
+     * 
+     * @param {vscgn_contracts.GitNotification} notification The notification to send.
      */
-    public get notifyOnClosedIssue(): boolean {
-        let result: boolean;
-
-        if (vscgn_helpers.isObject(this.settings.issues)) {
-            result = this.settings.issues.closed;
+    protected emitGitNotification(notification: vscgn_contracts.GitNotification) {
+        if (notification) {
+            return this.emit(vscgn_contracts.EVENT_GIT_NOTIFICATION,
+                             notification);
         }
-
-        return vscgn_helpers.toBooleanSafe(result, true);
     }
 
-    /**
-     * Notify when new issue has been created.
-     */
-    public get notifyOnNewIssue(): boolean {
-        let result: boolean;
-
-        if (vscgn_helpers.isObject(this.settings.issues)) {
-            result = this.settings.issues.created;
+    /** @inheritdoc */
+    public get name(): string {
+        const WATCHER_NAME = vscgn_helpers.toStringSafe(this.settings.name);
+        if ('' !== WATCHER_NAME) {
+            return WATCHER_NAME;
         }
-
-        return vscgn_helpers.toBooleanSafe(result, true);
-    }
-
-    /**
-     * Notify when a new comment has been made in an issue.
-     */
-    public get notifyOnNewIssueComment(): boolean {
-        let result: boolean;
-
-        if (vscgn_helpers.isObject(this.settings.issues)) {
-            result = this.settings.issues.newComment;
-        }
-
-        return vscgn_helpers.toBooleanSafe(result, true);
-    }
-
-    /**
-     * Notify when issue has been re-opened.
-     */
-    public get notifyOnReopenedIssue(): boolean {
-        let result: boolean;
-
-        if (vscgn_helpers.isObject(this.settings.issues)) {
-            result = this.settings.issues.reopened;
-        }
-
-        return vscgn_helpers.toBooleanSafe(result, true);
+        
+        return this.providerName;
     }
 
     /**
@@ -218,24 +210,31 @@ export abstract class GitWatcherBase<TSettings extends vscgn_contracts.WatcherSe
      */
     public abstract get providerName(): string;
     
-    /**
-     * Promise (and safe) version of 'vscode.window.showWarningMessage()' function.
-     * 
-     * @param {any} msg The message to display.
-     * @param {TItem[]} [items] The optional items.
-     * 
-     * @return {Promise<TItem>} The promise with the selected item.
-     */
+    /** @inheritdoc */
+    public async showInformationMessage<TItem extends vscode.MessageItem = vscode.MessageItem>(msg: any, items?: TItem[]): Promise<TItem> {
+        try {
+            msg = vscgn_helpers.toStringSafe(msg);
+
+            return await vscode.window.showInformationMessage
+                                      .apply(null, [ <any>`[${this.name}] ${msg}`.trim() ].concat( vscgn_helpers.asArray(items) ));
+        }
+        catch (e) {
+            vscgn_log.CONSOLE
+                     .trace(e, 'watchers.GitWatcherBase.showInformationMessage()');
+        }
+    }
+
+    /** @inheritdoc */
     public async showWarningMessage<TItem extends vscode.MessageItem = vscode.MessageItem>(msg: any, items?: TItem[]): Promise<TItem> {
         try {
             msg = vscgn_helpers.toStringSafe(msg);
 
             return await vscode.window.showWarningMessage
-                                      .apply(null, [ <any>`[${this.providerName}] ${msg}`.trim() ].concat( vscgn_helpers.asArray(items) ));
+                                      .apply(null, [ <any>`[${this.name}] ${msg}`.trim() ].concat( vscgn_helpers.asArray(items) ));
         }
         catch (e) {
             vscgn_log.CONSOLE
-                     .trace(e, 'controller.Controller.showWarningMessage()');
+                     .trace(e, 'watchers.GitWatcherBase.showWarningMessage()');
         }
     }
 
@@ -324,6 +323,9 @@ export function createWatcher(settings: vscgn_contracts.WatcherSettings): GitWat
         case '':
         case 'github':
             return new (require('./watchers/github').GitHubWatcher)(ME, settings);
+
+        case 'gitea':
+            return new (require('./watchers/gitea').GiteaWatcher)(ME, settings);
     }
 
     throw new Error(`Git provider '${PROVIDER}' is not supported!`);

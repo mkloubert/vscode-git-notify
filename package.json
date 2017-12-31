@@ -2,7 +2,7 @@
     "name": "vscode-git-notify",
     "displayName": "Git Notify",
     "description": "Receives and shows git events from webhooks.",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "publisher": "mkloubert",
     "engines": {
         "vscode": "^1.19.0"
@@ -11,7 +11,7 @@
         "Other"
     ],
     "keywords": [
-        "Git",
+        "Gitea",
         "GitHub",
         "Webhooks",
         "Notify",
@@ -71,7 +71,8 @@
                                                 "type": "string",
                                                 "enum": [
                                                     "",
-                                                    "github"
+                                                    "github",
+                                                    "gitea"
                                                 ],
                                                 "default": "github"
                                             },
@@ -101,13 +102,13 @@
                                                                 "type": "boolean",
                                                                 "default": true
                                                             },
-                                                            "created": {
-                                                                "description": "Notify when new issue has been created.",
+                                                            "newComment": {
+                                                                "description": "Notify when a new comment has been made in an issue.",
                                                                 "type": "boolean",
                                                                 "default": true
                                                             },
-                                                            "newComment": {
-                                                                "description": "Notify when a new comment has been made in an issue.",
+                                                            "opened": {
+                                                                "description": "Notify when new issue has been opened.",
                                                                 "type": "boolean",
                                                                 "default": true
                                                             },
@@ -122,14 +123,40 @@
                                                         "description": "The path to the SSL's key file.",
                                                         "type": "string"
                                                     },
+                                                    "name": {
+                                                        "description": "A (display) name for that watcher.",
+                                                        "type": "string"
+                                                    },
                                                     "provider": {
                                                         "description": "The git provider.",
                                                         "type": "string",
                                                         "enum": [
                                                             "",
-                                                            "github"
+                                                            "github",
+                                                            "gitea"
                                                         ],
                                                         "default": "github"
+                                                    },
+                                                    "pullRequests": {
+                                                        "description": "Sets up pull request based events.",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "closed": {
+                                                                "description": "Notify when pull request has been closed.",
+                                                                "type": "boolean",
+                                                                "default": true
+                                                            },
+                                                            "opened": {
+                                                                "description": "Notify when new pull request has been opened.",
+                                                                "type": "boolean",
+                                                                "default": true
+                                                            },
+                                                            "reopened": {
+                                                                "description": "Notify when a pull request has been re-opened.",
+                                                                "type": "boolean",
+                                                                "default": true
+                                                            }
+                                                        }
                                                     },
                                                     "secret": {
                                                         "description": "A value that should be used to verify the request."

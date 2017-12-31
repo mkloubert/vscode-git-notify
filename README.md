@@ -11,6 +11,7 @@
 2. [How to use](#how-to-use-)
    * [Settings](#settings-)
      * [GitHub](#github-)
+     * [Gitea](#gitea-)
      * [Secure HTTP](#secure-http-)
 3. [Support and contribute](#support-and-contribute-)
 
@@ -39,21 +40,33 @@ Add a `deploy.reloaded` section and one or more "watchers":
 }
 ```
 
+The following providers and events are supported:
+
+| Event | [GitHub](https://github.com) | [Gitea](https://gitea.io/)
+| ---- |:--:|:--:|
+| Closed issues | X | |
+| Closed pull requests | X | X |
+| New issues | X | |
+| New issue comments | X | X |
+| New pull requests | X | X |
+| Re-opened issues | X | |
+| Re-opened pull requests | X | |
+
 #### GitHub [[&uarr;](#settings-)]
 
 First you have to create a webhook for your repository.
 
 Click on the `Settings` tab and select `Webhooks` on the left side:
 
-![Demo Select repo settings](https://raw.githubusercontent.com/mkloubert/github-webhook-test/master/img/github_webhooks_1.png)
+![Demo Select repo settings in Github](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/github_webhooks_1.png)
 
 Click on `Add webhook` button:
 
-![Demo Add webhook button](https://raw.githubusercontent.com/mkloubert/github-webhook-test/master/img/github_webhooks_2.png)
+![Demo Add webhook button in Github](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/github_webhooks_2.png)
 
 Setup the URL, that should be called for an event. This URL must be able to redirect to your machine, where your VS Code instance runs. For that, you should check your firewall settings.
 
-![Demo Create web hook](https://raw.githubusercontent.com/mkloubert/github-webhook-test/master/img/github_webhooks_3.png)
+![Demo Create web hook in Github](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/github_webhooks_3.png)
 
 Now, you can define a watcher in your settings (it is recommended to do this globally - `CTRL + ,` / `CMD + ,`):
 
@@ -63,7 +76,7 @@ Now, you can define a watcher in your settings (it is recommended to do this glo
         "watchers": {
             "80": [
                 {
-                    "secret": "Test 1 2 3"
+                    "secret": "Test123"
                 }
             ]
         }
@@ -71,7 +84,39 @@ Now, you can define a watcher in your settings (it is recommended to do this glo
 }
 ```
 
-This will open a HTTP server instance on your machine on port `80` on startup, by using `Test 1 2 3` as secret expression as defined in the webhooks settings.
+This will open a HTTP server instance on your machine on port `80` on startup, by using `Test123` as secret expression as defined in the webhooks settings.
+
+#### Gitea [[&uarr;](#settings-)]
+
+First you have to create a webhook for your repository.
+
+Click on the `Settings` tab, select `Webhooks` sub-tab and click on `Add Webhook / Gitea`:
+
+![Demo Select repo settings in Gitea](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/gitea_webhooks_1.png)
+
+Setup the URL, that should be called for an event. This URL must be able to redirect to your machine, where your VS Code instance runs. For that, you should check your firewall settings.
+
+![Demo Create web hook in Gitea](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/gitea_webhooks_2.png)
+
+Now, you can define a watcher in your settings (it is recommended to do this globally - `CTRL + ,` / `CMD + ,`):
+
+```json
+{
+    "git.notify": {
+        "watchers": {
+            "8080": [
+                {
+                    "provider": "gitea",
+
+                    "secret": "Test123"
+                }
+            ]
+        }
+    }
+}
+```
+
+This will open a HTTP server instance on your machine on port `8080` on startup, by using `Test123` as secret expression as defined in the webhooks settings.
 
 #### Secure HTTP [[&uarr;](#settings-)]
 
