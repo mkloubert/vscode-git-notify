@@ -15,11 +15,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as Crypto from 'crypto';
 import * as HTTP from 'http';
 import * as vscgn_contracts from '../contracts';
 import * as vscgn_helpers from '../helpers';
-import * as vscgn_log from '../log';
 import * as vscgn_watchers from '../watchers';
 
 
@@ -27,7 +25,7 @@ interface GitLabRequest {
     object_kind?: string;
 }
 
-interface GitLabWithChanges extends GitLabRequest {
+interface GitLabRequestWithChanges extends GitLabRequest {
     changes?: {
         state?: {
             current?: string;
@@ -56,12 +54,12 @@ interface GitLabIssue {
     title?: string;
 }
 
-interface GitLabIssues extends GitLabWithChanges, GitLabRequestWithObjectAttributes, GitLabRequestWithProject, GitLabRequestWithRepository {
+interface GitLabIssues extends GitLabRequestWithChanges, GitLabRequestWithObjectAttributes, GitLabRequestWithProject, GitLabRequestWithRepository {
     issue?: GitLabIssue;
     object_kind?: string;
 }
 
-interface GitLabMergeRequests extends GitLabWithChanges, GitLabRequestWithObjectAttributes, GitLabRequestWithProject, GitLabRequestWithRepository {
+interface GitLabMergeRequests extends GitLabRequestWithChanges, GitLabRequestWithObjectAttributes, GitLabRequestWithProject, GitLabRequestWithRepository {
 }
 
 /**
@@ -105,7 +103,7 @@ export class GitLabWatcher extends vscgn_watchers.GitWebhookWatcher<GitLabWatche
         let nr: number = GET_OBJ_ATTRIB('iid');
         let notificationType: vscgn_contracts.GitNotificationType | false = false;
         let title: string = GET_OBJ_ATTRIB('title');
-        let url = GET_OBJ_ATTRIB('url');
+        let url: string = GET_OBJ_ATTRIB('url');
 
         const KIND = vscgn_helpers.normalizeString(issues.object_kind);
         switch (KIND) {
@@ -179,7 +177,7 @@ export class GitLabWatcher extends vscgn_watchers.GitWebhookWatcher<GitLabWatche
         let nr: number = GET_OBJ_ATTRIB('iid');
         let notificationType: vscgn_contracts.GitNotificationType | false = false;
         let title: string = GET_OBJ_ATTRIB('title');
-        let url = GET_OBJ_ATTRIB('url');
+        let url: string = GET_OBJ_ATTRIB('url');
 
         const KIND = vscgn_helpers.normalizeString(mergeRequests.object_kind);
         switch (KIND) {

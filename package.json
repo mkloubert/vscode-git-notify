@@ -2,7 +2,7 @@
     "name": "vscode-git-notify",
     "displayName": "Git Notify",
     "description": "Receives and shows git events from webhooks.",
-    "version": "0.0.4",
+    "version": "0.1.0",
     "publisher": "mkloubert",
     "engines": {
         "vscode": "^1.19.0"
@@ -71,6 +71,7 @@
                                                 "type": "string",
                                                 "enum": [
                                                     "",
+                                                    "bitbucket",
                                                     "github",
                                                     "gitea",
                                                     "gitlab"
@@ -133,6 +134,7 @@
                                                         "type": "string",
                                                         "enum": [
                                                             "",
+                                                            "bitbucket",
                                                             "github",
                                                             "gitea",
                                                             "gitlab"

@@ -324,6 +324,9 @@ export function createWatcher(settings: vscgn_contracts.WatcherSettings): GitWat
         case 'github':
             return new (require('./watchers/github').GitHubWatcher)(ME, settings);
 
+        case 'bitbucket':
+            return new (require('./watchers/bitbucket').BitbucketWatcher)(ME, settings);
+
         case 'gitlab':
             return new (require('./watchers/gitlab').GitLabWatcher)(ME, settings);
 

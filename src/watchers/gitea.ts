@@ -15,10 +15,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as Crypto from 'crypto';
 import * as HTTP from 'http';
 import * as vscgn_contracts from '../contracts';
-import * as vscgn_log from '../log';
 import * as vscgn_helpers from '../helpers';
 import * as vscgn_watchers from '../watchers';
 

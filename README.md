@@ -10,6 +10,7 @@
 1. [Install](#install-)
 2. [How to use](#how-to-use-)
    * [Settings](#settings-)
+     * [Bitbucket](#bitbucket-)
      * [GitHub](#github-)
      * [Gitea](#gitea-)
      * [GitLab](#gitlab-)
@@ -43,15 +44,43 @@ Add a `deploy.reloaded` section and one or more "watchers":
 
 The following providers and events are supported:
 
-| Event | [GitHub](https://github.com) | [Gitea](https://gitea.io) | [GitLab](https://gitlab.com)
-| ---- |:--:|:--:|:--:|
-| Closed issues | X | | X |
-| Closed pull requests | X | X | X |
-| New issues | X | | X |
-| New issue comments | X | | X |
-| New pull requests | X | X | X |
-| Re-opened issues | X | | X |
-| Re-opened pull requests | X | X | X |
+| Event | [Bitbucket](https://bitbucket.org) | [GitHub](https://github.com) | [Gitea](https://gitea.io) | [GitLab](https://gitlab.com)
+| ---- |:--:|:--:|:--:|:--:|
+| Closed issues | X | X | | X |
+| Closed pull requests | X | X | X | X |
+| New issues | X | X | | X |
+| New issue comments | X | X | | X |
+| New pull requests | X | X | X | X |
+| Re-opened issues | X | X | | X |
+| Re-opened pull requests | | X | X | X |
+
+#### Bitbucket [[&uarr;](#settings-)]
+
+First you have to create a webhook for your repository.
+
+Click on the `Settings` on the left side, then on `Add webhook` button in `Webhooks`:
+
+![Demo Select repo settings in Bitbucket](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/bitbucket_webhooks_1.png)
+
+Setup the URL, that should be called for an event. This URL must be able to redirect to your machine, where your VS Code instance runs. For that, you should check your firewall settings.
+
+![Demo Create web hook in GitLab](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/bitbucket_webhooks_2.png)
+
+```json
+{
+    "git.notify": {
+        "watchers": {
+            "23979": [
+                {
+                    "provider": "bitbucket"
+                }
+            ]
+        }
+    }
+}
+```
+
+This will open a HTTP server instance on your machine on port `23979` on startup.
 
 #### GitHub [[&uarr;](#settings-)]
 
