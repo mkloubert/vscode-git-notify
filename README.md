@@ -9,6 +9,10 @@
 
 [Visual Studio Code](https://code.visualstudio.com) extension, which receives and shows git events from webhooks.
 
+<kbd>
+  <img src="https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/demo.gif">
+</kbd>
+
 ## Table of contents
 
 1. [Install](#install-)
