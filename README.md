@@ -60,11 +60,15 @@ First you have to create a webhook for your repository.
 
 Click on the `Settings` on the left side, then on `Add webhook` button in `Webhooks`:
 
-![Demo Select repo settings in Bitbucket](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/bitbucket_webhooks_1.png)
+<kbd>
+  <img src="https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/bitbucket_webhooks_1.png">
+</kbd>
 
 Setup the URL, that should be called for an event. This URL must be able to redirect to your machine, where your VS Code instance runs. For that, you should check your firewall settings.
 
-![Demo Create web hook in GitLab](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/bitbucket_webhooks_2.png)
+<kbd>
+  <img src="https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/bitbucket_webhooks_2.png">
+</kbd>
 
 ```json
 {
@@ -211,7 +215,7 @@ If you use a self-signed certificate, you should disable SSL verification in you
 
 In GitHub, e.g., you have to click on `Disable SSL verification` button, when adding a web hook:
 
-![Demo Disable SSL verification in GitHub](https://raw.githubusercontent.com/mkloubert/github-webhook-test/master/img/github_webhooks_4.png)
+![Demo Disable SSL verification in GitHub](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/github_webhooks_4.png)
 
 ## Support and contribute [[&uarr;](#table-of-contents)]
 
