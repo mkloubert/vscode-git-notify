@@ -92,15 +92,21 @@ First you have to create a webhook for your repository.
 
 Click on the `Settings` tab and select `Webhooks` on the left side:
 
-![Demo Select repo settings in Github](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/github_webhooks_1.png)
+<kbd>
+  <img src="https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/github_webhooks_1.png">
+</kbd>
 
 Click on `Add webhook` button:
 
-![Demo Add webhook button in Github](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/github_webhooks_2.png)
+<kbd>
+  <img src="https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/github_webhooks_2.png">
+</kbd>
 
 Setup the URL, that should be called for an event. This URL must be able to redirect to your machine, where your VS Code instance runs. For that, you should check your firewall settings.
 
-![Demo Create web hook in Github](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/github_webhooks_3.png)
+<kbd>
+  <img src="https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/github_webhooks_3.png">
+</kbd>
 
 Now, you can define a watcher in your settings (it is recommended to do this globally - `CTRL + ,` / `CMD + ,`):
 
@@ -215,7 +221,9 @@ If you use a self-signed certificate, you should disable SSL verification in you
 
 In GitHub, e.g., you have to click on `Disable SSL verification` button, when adding a web hook:
 
-![Demo Disable SSL verification in GitHub](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/github_webhooks_4.png)
+<kbd>
+  <img src="https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/github_webhooks_4.png">
+</kbd>
 
 ## Support and contribute [[&uarr;](#table-of-contents)]
 
