@@ -324,6 +324,9 @@ export function createWatcher(settings: vscgn_contracts.WatcherSettings): GitWat
         case 'github':
             return new (require('./watchers/github').GitHubWatcher)(ME, settings);
 
+        case 'gitlab':
+            return new (require('./watchers/gitlab').GitLabWatcher)(ME, settings);
+
         case 'gitea':
             return new (require('./watchers/gitea').GiteaWatcher)(ME, settings);
     }

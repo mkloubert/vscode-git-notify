@@ -12,6 +12,7 @@
    * [Settings](#settings-)
      * [GitHub](#github-)
      * [Gitea](#gitea-)
+     * [GitLab](#gitlab-)
      * [Secure HTTP](#secure-http-)
 3. [Support and contribute](#support-and-contribute-)
 
@@ -42,15 +43,15 @@ Add a `deploy.reloaded` section and one or more "watchers":
 
 The following providers and events are supported:
 
-| Event | [GitHub](https://github.com) | [Gitea](https://gitea.io/)
-| ---- |:--:|:--:|
-| Closed issues | X | |
-| Closed pull requests | X | X |
-| New issues | X | |
-| New issue comments | X | X |
-| New pull requests | X | X |
-| Re-opened issues | X | |
-| Re-opened pull requests | X | |
+| Event | [GitHub](https://github.com) | [Gitea](https://gitea.io) | [GitLab](https://gitlab.com)
+| ---- |:--:|:--:|:--:|
+| Closed issues | X | | X |
+| Closed pull requests | X | X | X |
+| New issues | X | | X |
+| New issue comments | X | | X |
+| New pull requests | X | X | X |
+| Re-opened issues | X | | X |
+| Re-opened pull requests | X | X | X |
 
 #### GitHub [[&uarr;](#settings-)]
 
@@ -117,6 +118,36 @@ Now, you can define a watcher in your settings (it is recommended to do this glo
 ```
 
 This will open a HTTP server instance on your machine on port `8080` on startup, by using `Test123` as secret expression as defined in the webhooks settings.
+
+#### GitLab [[&uarr;](#settings-)]
+
+First you have to create a webhook for your repository.
+
+Click on the `Settings` on the left side and click on `Integrations`:
+
+![Demo Select repo settings in GitLab](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/gitlab_webhooks_1.png)
+
+Setup the URL, that should be called for an event. This URL must be able to redirect to your machine, where your VS Code instance runs. For that, you should check your firewall settings.
+
+![Demo Create web hook in GitLab](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/gitlab_webhooks_2.png)
+
+```json
+{
+    "git.notify": {
+        "watchers": {
+            "5979": [
+                {
+                    "provider": "gitlab",
+
+                    "secret": "Test123"
+                }
+            ]
+        }
+    }
+}
+```
+
+This will open a HTTP server instance on your machine on port `5979` on startup, by using `Test123` as secret expression as defined in the webhooks settings.
 
 #### Secure HTTP [[&uarr;](#settings-)]
 
