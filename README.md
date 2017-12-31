@@ -132,11 +132,15 @@ First you have to create a webhook for your repository.
 
 Click on the `Settings` tab, select `Webhooks` sub-tab and click on `Add Webhook / Gitea`:
 
-![Demo Select repo settings in Gitea](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/gitea_webhooks_1.png)
+<kbd>
+  <img src="https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/gitea_webhooks_1.png">
+</kbd>
 
 Setup the URL, that should be called for an event. This URL must be able to redirect to your machine, where your VS Code instance runs. For that, you should check your firewall settings.
 
-![Demo Create web hook in Gitea](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/gitea_webhooks_2.png)
+<kbd>
+  <img src="https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/gitea_webhooks_2.png">
+</kbd>
 
 Now, you can define a watcher in your settings (it is recommended to do this globally - `CTRL + ,` / `CMD + ,`):
 
@@ -164,11 +168,15 @@ First you have to create a webhook for your repository.
 
 Click on the `Settings` on the left side and click on `Integrations`:
 
-![Demo Select repo settings in GitLab](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/gitlab_webhooks_1.png)
+<kbd>
+  <img src="https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/gitlab_webhooks_1.png">
+</kbd>
 
 Setup the URL, that should be called for an event. This URL must be able to redirect to your machine, where your VS Code instance runs. For that, you should check your firewall settings.
 
-![Demo Create web hook in GitLab](https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/gitlab_webhooks_2.png)
+<kbd>
+  <img src="https://raw.githubusercontent.com/mkloubert/vscode-git-notify/master/img/gitlab_webhooks_2.png">
+</kbd>
 
 ```json
 {
